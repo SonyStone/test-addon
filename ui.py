@@ -13,7 +13,13 @@ class CustomEditorPanel(Panel):
         layout = self.layout
 
         row = layout.row()
-        row.operator("wm.graph_editor_get")
+        row.operator("wm.graph_editor_get_keyframes")
+
+        row = layout.row()
+        row.operator("wm.graph_editor_delete_keyframes")
+
+        row = layout.row()
+        row.operator("wm.graph_editor_insert_keyframes")
 
 classes = (
     CustomEditorPanel,
