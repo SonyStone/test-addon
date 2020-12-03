@@ -90,15 +90,8 @@ class GraphEditorDeleteKeyframesOperator(Operator):
 
 
     def execute(self, context):
-        selected_fcurves = get_selected_fcurves(context)
-        
-        for fcurve in selected_fcurves:
-            selected_keyframes = get_selected_keyframes(fcurve)
 
-            for keyframe in selected_keyframes:
-                fcurve.keyframe_points.remove(keyframe)
-
-            fcurve.update()
+        bpy.ops.graph.delete()
 
         return {'FINISHED'}
 
