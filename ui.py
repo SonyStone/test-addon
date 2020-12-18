@@ -21,6 +21,11 @@ class CustomEditorPanel(Panel):
         row = layout.row()
         row.operator("wm.graph_editor_insert_keyframes")
 
+        layout.separator()
+
+        layout.operator("graph.delete")
+        layout.operator("graph.keyframe_insert").type = 'SEL'
+
 classes = (
     CustomEditorPanel,
 )
