@@ -8,6 +8,7 @@ from . import subdivide_fcurve
 def get_selected_fcurves(context):
     selected_fcurve = []
 
+    # https://docs.blender.org/api/current/bpy.context.html#bpy.context.selected_visible_fcurves
     for selected_visible_fcurve in context.selected_visible_fcurves:
         if selected_visible_fcurve.select:
             selected_fcurve.append(selected_visible_fcurve)
@@ -31,11 +32,17 @@ def get_selected_keyframes(fcurve):
             
     return selected_keyframes
 
+def set_select_keyframe(keyframe, boolean):
+    
+    keyframe.select_control_point = boolean
+    keyframe.select_left_handle = boolean
+    keyframe.select_right_handle = boolean
+
 class GraphEditorGetKeyframesOperator(Operator):
     '''gets current selected keyframes and prints them into the console'''
 
     bl_idname = "wm.graph_editor_get_keyframes"
-    bl_label = "Get Keyframes"
+    bl_label = "Process"
     bl_options = {'REGISTER', 'UNDO'}
 
     my_float_y : bpy.props.FloatProperty()
@@ -51,82 +58,54 @@ class GraphEditorGetKeyframesOperator(Operator):
         else:
             return False 
 
-
     def execute(self, context):
+        '''
+        По кнопке пробегается цикл по всем ключам, потом удаляются все ключи, кроме первого.  
+
+        сниаем выделение с перых ключей -> удаляются все выделенные ключи -> выделяем первые ключи
+
+        [FCurve](https://docs.blender.org/api/current/bpy.types.FCurve.html)
+        [Keyframe](https://docs.blender.org/api/current/bpy.types.Keyframe.html)
+        [graph.delete](https://docs.blender.org/api/current/bpy.ops.graph.html#bpy.ops.graph.delete)
+        '''
         selected_fcurves = get_selected_fcurves(context)
 
+        first_keyframes = []
+
+
         for fcurve in selected_fcurves:
+
             selected_keyframes = get_selected_keyframes(fcurve)
 
             for keyframe in selected_keyframes:
 
-                # https://docs.blender.org/api/current/bpy.types.Keyframe.html
                 print("Keyframe", keyframe.type, keyframe.co)
                 print("Left Handle", keyframe.handle_left_type, keyframe.handle_left)
                 print("Right Handle", keyframe.handle_right_type, keyframe.handle_right)
                 print("---")
 
+            keyframe = selected_keyframes[0]
+
+            if keyframe:
+
+                first_keyframes.append(keyframe)
+
+                first_keyframe = keyframe
+
+                set_select_keyframe(keyframe, False)
+
+
             fcurve.update()
-            
-        return {'FINISHED'}
-
-class GraphEditorDeleteKeyframesOperator(Operator):
-    '''gets current selected keyframes and prints them into the console'''
-
-    bl_idname = "wm.graph_editor_delete_keyframes"
-    bl_label = "Delete Keyframes"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        areas = ('DOPESHEET_EDITOR', 'GRAPH_EDITOR', 'TIMELINE')
-
-        objects = context.selected_objects
-
-        if context.area.type in areas:
-            return True
-        else:
-            return False 
-
-
-    def execute(self, context):
 
         bpy.ops.graph.delete()
 
-        return {'FINISHED'}
+        for first_keyframe in first_keyframes:
+            set_select_keyframe(first_keyframe, True)
 
-class GraphEditorInsertKeyframesOperator(Operator):
-    '''gets current selected keyframes and prints them into the console'''
-
-    bl_idname = "wm.graph_editor_insert_keyframes"
-    bl_label = "Insert Keyframes"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        areas = ('DOPESHEET_EDITOR', 'GRAPH_EDITOR', 'TIMELINE')
-
-        objects = context.selected_objects
-
-        if context.area.type in areas:
-            return True
-        else:
-            return False 
-
-
-    def execute(self, context):
-        selected_fcurves = get_selected_fcurves(context)
-
-        frame_current = context.scene.frame_current
-
-        for selected_fcurve in selected_fcurves:
-
-            subdivide_fcurve.subdivide_fcurve(selected_fcurve, frame_current)
             
         return {'FINISHED'}
 
+
 classes = (
     GraphEditorGetKeyframesOperator,
-    GraphEditorDeleteKeyframesOperator,
-    GraphEditorInsertKeyframesOperator,
 )
