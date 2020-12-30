@@ -51,8 +51,6 @@ class GraphEditorGetKeyframesOperator(Operator):
     def poll(cls, context):
         areas = ('DOPESHEET_EDITOR', 'GRAPH_EDITOR', 'TIMELINE')
 
-        objects = context.selected_objects
-
         if context.area.type in areas:
             return True
         else:
@@ -60,47 +58,23 @@ class GraphEditorGetKeyframesOperator(Operator):
 
     def execute(self, context):
         '''
-        По кнопке пробегается цикл по всем ключам, потом удаляются все ключи, кроме первого.  
-
-        сниаем выделение с перых ключей -> удаляются все выделенные ключи -> выделяем первые ключи
-
         [FCurve](https://docs.blender.org/api/current/bpy.types.FCurve.html)
         [Keyframe](https://docs.blender.org/api/current/bpy.types.Keyframe.html)
         [graph.delete](https://docs.blender.org/api/current/bpy.ops.graph.html#bpy.ops.graph.delete)
+        [FCurveKeyframePoints](https://docs.blender.org/api/current/bpy.types.FCurveKeyframePoints.html)
         '''
         selected_fcurves = get_selected_fcurves(context)
-
-        first_keyframes = []
-
 
         for fcurve in selected_fcurves:
 
             selected_keyframes = get_selected_keyframes(fcurve)
 
-            for keyframe in selected_keyframes:
+            for keyframe in reversed(selected_keyframes[1:]):
+                fcurve.keyframe_points.remove(keyframe, fast=True)
 
-                print("Keyframe", keyframe.type, keyframe.co)
-                print("Left Handle", keyframe.handle_left_type, keyframe.handle_left)
-                print("Right Handle", keyframe.handle_right_type, keyframe.handle_right)
-                print("---")
+            selected_keyframes[0].co.y = selected_keyframes[0].co.y # workaround for fcurve.update
 
-            keyframe = selected_keyframes[0]
-
-            if keyframe:
-
-                first_keyframes.append(keyframe)
-
-                first_keyframe = keyframe
-
-                set_select_keyframe(keyframe, False)
-
-
-            fcurve.update()
-
-        bpy.ops.graph.delete()
-
-        for first_keyframe in first_keyframes:
-            set_select_keyframe(first_keyframe, True)
+            fcurve.update() # not updating view
 
             
         return {'FINISHED'}
