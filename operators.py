@@ -69,7 +69,7 @@ class GraphEditorGetKeyframesOperator(Operator):
 
             selected_keyframes = get_selected_keyframes(fcurve)
 
-            for keyframe in reversed(selected_keyframes[1:]):
+            for keyframe in reversed(selected_keyframes[1:-1]):
                 fcurve.keyframe_points.remove(keyframe, fast=True)
 
             selected_keyframes[0].co.y = selected_keyframes[0].co.y # workaround for fcurve.update
